@@ -124,7 +124,7 @@ def generate_response(query_text, vectorstore, callback):
     # retriever 
     docs_list = vectorstore.similarity_search(query_text, k=3)
     docs = ""
-    for i, doc in enumerate(docs_list)
+    for i, doc in enumerate(docs_list):
         docs += f"'문서{i+1}':{doc.page_content}\n"
         
     # generator
