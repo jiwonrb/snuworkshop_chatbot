@@ -110,7 +110,7 @@ def process_uploaded_file(uploaded_file):
         )
         all_splits = text_splitter.create_documents([raw_text])
 
-print("총 " + str(len(all_splits)) + "개의 passage")
+        print("총 " + str(len(all_splits)) + "개의 passage")
 
         # storage
         vectorstore = FAISS.from_documents(documents=all_splits, embedding=OpenAIEmbeddings())
