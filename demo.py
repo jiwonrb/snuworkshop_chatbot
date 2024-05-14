@@ -163,7 +163,7 @@ def generate_summarize(raw_text, callback):
 
 # page title
 st.set_page_config(page_title='🦜🔗 서울대학교 문서 기반 요약 및 QA 챗봇_rb')
-st.title('🦜🔗 서울대학교 문서 기반 요약 및 QA 챗봇')
+st.title('🦜🔗 SNU 문서 기반 요약 및 QA 챗봇_rb')
 
 import os
 api_key = st.sidebar.text_input("Enter your OpenAI API Key", type="password")
