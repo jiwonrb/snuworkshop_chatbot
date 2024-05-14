@@ -153,7 +153,7 @@ def generate_summarize(raw_text, callback):
     # prompt formatting
     rag_prompt = [
         SystemMessage(
-            content="다음 나올 문서를 'Notion style'로 적절한 이모지를 불렛포인트로 사용해서 요약해줘. 중요한 내용만. 전체 요약 마지막에는 '마음에 드냐옹? 💕 언제든 추가로 질문하라냥! 🐾' 이라는 문장을 덧붙여줘."
+            content="다음 나올 문서를 'Notion style'로 적절한 이모지를 불렛포인트로 사용해서 요약해줘. 중요한 내용만. "
         ),
         HumanMessage(
             content=raw_text
