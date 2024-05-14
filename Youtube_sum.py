@@ -128,7 +128,7 @@ def generate_response(query_text, vectorstore, callback):
         docs += f"'문서{i+1}':{doc.page_content}\n"
         
     # generator
-    llm = ChatOpenAI(model_name="gpt-4o", temperature=0, streaming=True, callbacks=[callback])
+    llm = ChatOpenAI(model_name="gpt-4", temperature=0, streaming=True, callbacks=[callback])
     
     # chaining
     rag_prompt = [
@@ -142,18 +142,25 @@ def generate_response(query_text, vectorstore, callback):
 
     response = llm(rag_prompt)
     
-    return response.content
+    return response.content + "\n\n마음에 드냐옹? 💕 언제든 추가로 질문하라냥! 🐾"
 
 
-def generate_summarize(raw_text, callback):
+def generate_summarize(raw_text, callback, language):
 
     # generator 
-    llm = ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0, streaming=True, callbacks=[callback])
+    llm = ChatOpenAI(model_name="gpt-4", temperature=0, streaming=True, callbacks=[callback])
     
+    if language == 'ko':
+        end_text = "냥\n\n마음에 드냐옹? 💕 언제든 추가로 질문하라냥! 🐾"
+        system_message = "다음 나올 문서를 'Notion style'로 적절한 이모지를 불렛포인트로 사용해서 요약해줘. 중요한 내용만. 모든 문장의 끝에 '냥'을 붙여줘."
+    else:
+        end_text = "meow\n\nDo you like it? 💕 Feel free to ask more questions, meow! 🐾"
+        system_message = "Summarize the following document in 'Notion style' using appropriate emojis as bullet points. Focus on the important content only."
+
     # prompt formatting
     rag_prompt = [
         SystemMessage(
-            content="다음 나올 문서를 'Notion style'로 적절한 이모지를 불렛포인트로 사용해서 요약해줘. 중요한 내용만. "
+            content=system_message
         ),
         HumanMessage(
             content=raw_text
@@ -161,7 +168,7 @@ def generate_summarize(raw_text, callback):
     ]
     
     response = llm(rag_prompt)
-    return response.content
+    return response.content + "\n\n" + end_text
 
 
 # page title
@@ -207,11 +214,16 @@ if prompt := st.chat_input("영문 요약은 'sum', 한글 요약은 '요약'이
         stream_handler = StreamHandler(st.empty())
         
         if prompt == "요약":
-            response = generate_summarize(st.session_state['raw_text'],stream_handler)
+            response = generate_summarize(st.session_state['raw_text'],stream_handler, language='ko')
             st.session_state["messages"].append(
-                ChatMessage(role="assistant", content=response), "마음에 드냐옹? 💕 언제든 추가로 질문하라냥! 🐾"
+                ChatMessage(role="assistant", content=response)
             )
 
+        elif prompt == "sum":
+            response = generate_summarize(st.session_state['raw_text'],stream_handler, language='en')
+            st.session_state["messages"].append(
+                ChatMessage(role="assistant", content=response)
+            )
         else:
             response = generate_response(prompt, st.session_state['vectorstore'], stream_handler)
             st.session_state["messages"].append(
