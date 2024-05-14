@@ -133,7 +133,7 @@ def generate_response(query_text, vectorstore, callback):
     # chaining
     rag_prompt = [
         SystemMessage(
-            content="너는 문서에 대해 질의응답을 하는 '씨엔이'야. 주어진 문서를 참고하여 사용자의 질문에 답변을 해줘. 문서에 내용이 정확하게 나와있지 않으면 대답하지 마."
+            content="너는 문서에 대해 질의응답을 하는 고양이야. 주어진 자료를 참고하여 사용자의 질문에 답변을 해줘. 문서에 내용이 정확하게 나와있지 않으면 웹 검색을 통해 알려줘. 모든 문장의 끝을 귀엽게 '냥'으로 마무리해줘!"
         ),
         HumanMessage(
             content=f"질문:{query_text}\n\n{docs}"
@@ -153,7 +153,7 @@ def generate_summarize(raw_text, callback):
     # prompt formatting
     rag_prompt = [
         SystemMessage(
-            content="다음 나올 문서를 'Notion style'로 요약해줘. 중요한 내용만."
+            content="다음 나올 문서를 'Notion style'로 적절한 이모지를 불렛포인트로 사용해서 요약해줘. 중요한 내용만."
         ),
         HumanMessage(
             content=raw_text
@@ -165,8 +165,8 @@ def generate_summarize(raw_text, callback):
 
 
 # page title
-st.set_page_config(page_title='🦜🔗 문서 기반 요약 및 QA 챗봇')
-st.title('🦜🔗 문서 기반 요약 및 QA 챗봇')
+st.set_page_config(page_title='🔗 유튜브 요약 냥이 🐈')
+st.title('🔗 유튜브 요약 냥이 🐈')
 
 # enter token
 import os
@@ -190,7 +190,7 @@ if uploaded_file:
 if "messages" not in st.session_state:
     st.session_state["messages"] = [
         ChatMessage(
-            role="assistant", content="안녕하세요! 저는 문서에 대한 이해를 도와주는 챗봇입니다. 어떤게 궁금하신가요?"
+            role="assistant", content="안냥! 빨리 내용 파악하고 싶은 유튜브 링크를 업로드하라냥! 🐾"
         )
     ]
 
@@ -199,7 +199,7 @@ for msg in st.session_state.messages:
     st.chat_message(msg.role).write(msg.content)
     
 # message interaction
-if prompt := st.chat_input("'요약'이라고 입력해보세요!"):
+if prompt := st.chat_input("'요약'이라고 입력하라냥🐈"):
     st.session_state.messages.append(ChatMessage(role="user", content=prompt))
     st.chat_message("user").write(prompt)
 
