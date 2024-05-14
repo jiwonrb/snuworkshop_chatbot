@@ -22,6 +22,7 @@ class StreamHandler(BaseCallbackHandler):
         self.text += token
         self.container.markdown(self.text)
 
+
 # function to extract text from an HWP file
 import olefile
 import zlib
@@ -112,11 +113,11 @@ def process_uploaded_file(uploaded_file):
         # storage
         vectorstore = FAISS.from_documents(documents=all_splits, embedding=OpenAIEmbeddings())
                 
-        return vectorstore, all_splits
+        return vectorstore, raw_text
     return None
 
 # generate response using RAG technic
-def generate_response(query_text, vectorstore):
+def generate_response(query_text, vectorstore, callback):
 
     # retriever 
     docs_list = vectorstore.similarity_search(query_text, k=3)
@@ -125,7 +126,7 @@ def generate_response(query_text, vectorstore):
         docs += f"'문서{i+1}':{doc.page_content}\n"
         
     # generator
-    llm = ChatOpenAI(model_name="gpt-4", temperature=0)
+    llm = ChatOpenAI(model_name="gpt-4", temperature=0, streaming=True, callbacks=[callback])
     
     # chaining
     rag_prompt = [
@@ -139,13 +140,14 @@ def generate_response(query_text, vectorstore):
 
     response = llm(rag_prompt)
     
-    return response.content
+    return response.content + "\n\n마음에 드냐옹? 💕 언제든 추가로 질문하라냥! 🐾"
 
-def generate_summarize(raw_text_splits, language):
+
+def generate_summarize(raw_text, callback, language):
 
     # generator 
-    llm = ChatOpenAI(model_name="gpt-4", temperature=0)
-
+    llm = ChatOpenAI(model_name="gpt-4", temperature=0, streaming=True, callbacks=[callback])
+    
     if language == 'ko':
         system_message = "다음 나올 문서를 'Notion style'로, 전체 논문 내용을 충실하게 반영하는 적절한 이모지를 사용해서 불렛포인트로 요약해줘. 중요한 내용만. 모든 문장의 끝에 '냥'을 붙여줘. 또한 '~이다냥, ~했다냥'과 같은 자연스러운 문장으로 끝나게 해줘."
         end_text = "\n\n마음에 드냐옹? 💕 언제든 추가로 질문하라냥! 🐾"
@@ -155,25 +157,22 @@ def generate_summarize(raw_text_splits, language):
         end_text = "\n\nDo you like it? 💕 Feel free to ask more questions, meow! 🐾"
 
     # prompt formatting
-    all_responses = []
-    for i, raw_text in enumerate(raw_text_splits):
-        rag_prompt = [
-            SystemMessage(
-                content=system_message
-            ),
-            HumanMessage(
-                content=raw_text.page_content
-            ),
-        ]
-        response = llm(rag_prompt)
-        all_responses.append(response.content)
+    rag_prompt = [
+        SystemMessage(
+            content=system_message
+        ),
+        HumanMessage(
+            content=raw_text
+        ),
+    ]
+    
+    response = llm(rag_prompt)
+    return response.content + end_text
 
-    final_response = "\n\n".join(all_responses) + end_text
-    return final_response
 
 # page title
-st.set_page_config(page_title=' 🧊 꽁꽁 얼어붙은 논문 위로 🐈 고양이가 걸어다닙니다 🐾')
-st.title('🧊 꽁꽁 얼어붙은 논문 위로 🐈 고양이가 걸어다닙니다 🐾')
+st.set_page_config(page_title='🧊 꽁꽁 얼어붙은 고양이 🐈 가 논문 위를 걸어다닙니다 🐾')
+st.title('🧊 꽁꽁 얼어붙은 고양이 🐈 가 논문 위를 걸어다닙니다 🐾')
 
 # enter token
 import os
@@ -188,12 +187,12 @@ uploaded_file = st.file_uploader('Upload an document', type=['hwp','pdf'])
 
 # file upload logic
 if uploaded_file:
-    vectorstore, raw_text_splits = process_uploaded_file(uploaded_file)
+    vectorstore, raw_text = process_uploaded_file(uploaded_file)
     if vectorstore:
         st.session_state['vectorstore'] = vectorstore
-        st.session_state['raw_text_splits'] = raw_text_splits
+        st.session_state['raw_text'] = raw_text
         
-# chatbot greetings - 첫 인사
+# chatbot greatings - 첫 인사
 if "messages" not in st.session_state:
     st.session_state["messages"] = [
         ChatMessage(
@@ -203,40 +202,29 @@ if "messages" not in st.session_state:
 
 # conversation history print 
 for msg in st.session_state.messages:
-    st.write(msg.content)
+    st.chat_message(msg.role).write(msg.content)
     
 # message interaction
 if prompt := st.chat_input("영문 요약은 'sum', 한글 요약은 '요약'이라고 입력하라냥🐈"):
     st.session_state.messages.append(ChatMessage(role="user", content=prompt))
-    st.write(f"user: {prompt}")
+    st.chat_message("user").write(prompt)
 
-    with st.spinner("답변 생성 중..."):
+    with st.chat_message("assistant"):
+        stream_handler = StreamHandler(st.empty())
+        
         if prompt == "요약":
-            try:
-                response = generate_summarize(st.session_state['raw_text_splits'], language='ko')
-                st.session_state["messages"].append(
-                    ChatMessage(role="assistant", content=response)
-                )
-                st.write(f"assistant: {response}")
-            except Exception as e:
-                st.error(f"Error generating summary: {e}")
+            response = generate_summarize(st.session_state['raw_text'], stream_handler, language='ko')
+            st.session_state["messages"].append(
+                ChatMessage(role="assistant", content=response)
+            )
 
         elif prompt == "sum":
-            try:
-                response = generate_summarize(st.session_state['raw_text_splits'], language='en')
-                st.session_state["messages"].append(
-                    ChatMessage(role="assistant", content=response)
-                )
-                st.write(f"assistant: {response}")
-            except Exception as e:
-                st.error(f"Error generating summary: {e}")
+            response = generate_summarize(st.session_state['raw_text'], stream_handler, language='en')
+            st.session_state["messages"].append(
+                ChatMessage(role="assistant", content=response)
+            )
         else:
-            try:
-                response = generate_response(prompt, st.session_state['vectorstore'])
-                response += "\n\n마음에 드냐옹? 💕 언제든 추가로 질문하라냥! 🐾"
-                st.session_state["messages"].append(
-                    ChatMessage(role="assistant", content=response)
-                )
-                st.write(f"assistant: {response}")
-            except Exception as e:
-                st.error(f"Error generating response: {e}")
+            response = generate_response(prompt, st.session_state['vectorstore'], stream_handler)
+            st.session_state["messages"].append(
+                ChatMessage(role="assistant", content=response)
+            )
