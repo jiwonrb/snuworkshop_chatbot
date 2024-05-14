@@ -146,11 +146,11 @@ def generate_summarize(raw_text_splits, language):
     # generator 
     llm = ChatOpenAI(model_name="gpt-4", temperature=0)
 
-        if language == 'ko':
+    if language == 'ko':
         system_message = "다음 나올 문서를 'Notion style'로, 전체 논문 내용을 충실하게 반영하는 적절한 이모지를 사용해서 불렛포인트로 요약해줘. 중요한 내용만. 모든 문장의 끝에 '냥'을 붙여줘. 또한 '~이다냥, ~했다냥'과 같은 자연스러운 문장으로 끝나게 해줘."
         end_text = "\n\n마음에 드냐옹? 💕 언제든 추가로 질문하라냥! 🐾"
             
-        else:
+    else:
         system_message = "Summarize the following document in 'Notion style' using appropriate emojis depending on the whole contents of the paper as bullet points. Focus on the important content only and end each sentence with 'meow'."
         end_text = "\n\nDo you like it? 💕 Feel free to ask more questions, meow! 🐾"
 
