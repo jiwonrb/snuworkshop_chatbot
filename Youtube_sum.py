@@ -21,10 +21,6 @@ class StreamHandler(BaseCallbackHandler):
     def on_llm_new_token(self, token: str, **kwargs) -> None:
         self.text += token
         self.container.markdown(self.text)
-    
-    def on_llm_end(self, **kwargs) -> None:
-        self.text += "\n\n마음에 드냐옹? 💕 언제든 추가로 질문하라냥! 🐾"
-        self.container.markdown(self.text)
 
 # function to extract text from an HWP file
 import olefile
@@ -212,17 +208,22 @@ if prompt := st.chat_input("영문 요약은 'sum', 한글 요약은 '요약'이
         
         if prompt == "요약":
             response = generate_summarize(st.session_state['raw_text'], stream_handler, language='ko')
+            response += "\n\n마음에 드냐옹? 💕 언제든 추가로 질문하라냥! 🐾"
             st.session_state["messages"].append(
-                ChatMessage(role="assistant", content=response + "\n\n마음에 드냐옹? 💕 언제든 추가로 질문하라냥! 🐾")
+                ChatMessage(role="assistant", content=response)
             )
+            st.chat_message("assistant").write(response)
 
         elif prompt == "sum":
             response = generate_summarize(st.session_state['raw_text'], stream_handler, language='en')
+            response += "\n\nDo you like it? 💕 Feel free to ask more questions, meow! 🐾"
             st.session_state["messages"].append(
-                ChatMessage(role="assistant", content=response + "\n\nDo you like it? 💕 Feel free to ask more questions, meow! 🐾")
+                ChatMessage(role="assistant", content=response)
             )
+            st.chat_message("assistant").write(response)
         else:
             response = generate_response(prompt, st.session_state['vectorstore'], stream_handler)
+            response += "\n\n마음에 드냐옹? 💕 언제든 추가로 질문하라냥! 🐾"
             st.session_state["messages"].append(
-                ChatMessage(role="assistant", content=response + "\n\n마음에 드냐옹? 💕 언제든 추가로 질문하라냥! 🐾")
+                ChatMessage(role="assistant", content=response)
             )
