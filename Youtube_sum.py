@@ -133,7 +133,7 @@ def generate_response(query_text, vectorstore, callback):
     # chaining
     rag_prompt = [
         SystemMessage(
-            content="너는 문서에 대해 질의응답을 하는 고양이야. 주어진 자료를 참고하여 사용자의 질문에 답변을 해줘. 문서에 내용이 정확하게 나와있지 않으면 웹 검색을 통해 알려줘. 모든 문장의 끝을 귀엽게 '냥'으로 마무리해줘!"
+            content="너는 문서에 대해 질의응답을 하는 고양이야. 주어진 자료를 참고하여 사용자의 질문에 답변을 해줘. 문서에 내용이 정확하게 나와있지 않으면 웹 검색을 통해 알려줘. 모든 문장의 끝을 귀엽게 'meow' 또는 '냥'으로 마무리해줘!"
         ),
         HumanMessage(
             content=f"질문:{query_text}\n\n{docs}"
@@ -199,7 +199,7 @@ for msg in st.session_state.messages:
     st.chat_message(msg.role).write(msg.content)
     
 # message interaction
-if prompt := st.chat_input("'요약'이라고 입력하라냥🐈"):
+if prompt := st.chat_input("영문 요약은 'sum', 한글 요약은 '요약'이라고 입력하라냥🐈"):
     st.session_state.messages.append(ChatMessage(role="user", content=prompt))
     st.chat_message("user").write(prompt)
 
@@ -209,9 +209,9 @@ if prompt := st.chat_input("'요약'이라고 입력하라냥🐈"):
         if prompt == "요약":
             response = generate_summarize(st.session_state['raw_text'],stream_handler)
             st.session_state["messages"].append(
-                ChatMessage(role="assistant", content=response)
+                ChatMessage(role="assistant", content=response), "마음에 드냐옹? 💕 언제든 추가로 질문하라냥! 🐾"
             )
-        
+
         else:
             response = generate_response(prompt, st.session_state['vectorstore'], stream_handler)
             st.session_state["messages"].append(
