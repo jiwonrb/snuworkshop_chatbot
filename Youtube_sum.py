@@ -172,8 +172,8 @@ def generate_summarize(raw_text, callback, language):
 
 
 # page title
-st.set_page_config(page_title='🔗 유튜브 요약 냥이 🐈')
-st.title('🔗 유튜브 요약 냥이 🐈')
+st.set_page_config(page_title='🧊 꽁꽁 얼어붙은 고양이 🐈 가 논문 위를 걸어다닙니다 🐾')
+st.title('🧊 꽁꽁 얼어붙은 고양이 🐈 가 논문 위를 걸어다닙니다 🐾')
 
 # enter token
 import os
@@ -227,4 +227,5 @@ if prompt := st.chat_input("영문 요약은 'sum', 한글 요약은 '요약'이
         else:
             response = generate_response(prompt, st.session_state['vectorstore'], stream_handler)
             st.session_state["messages"].append(
-                ChatMessage(role="assistant",
+                ChatMessage(role="assistant", content=respons)
+            )
