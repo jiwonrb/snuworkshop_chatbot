@@ -5,10 +5,10 @@ from langchain.vectorstores import FAISS
 from langchain.embeddings import OpenAIEmbeddings
 from langchain.chat_models import ChatOpenAI
 from langchain.schema import HumanMessage, SystemMessage 
-from langchain.callbacks.base import BaseCallbackHandler #토큰단위로 계속 출력 가능하도록 함.
+from langchain.callbacks.base import BaseCallbackHandler
 from langchain.schema import ChatMessage
 
-from dotenv import load_dotenv #사이트에서 토큰 넣어주는 게 아니라 저 파일을 만들어서 저기에 토큰을 올려놓을 수 있다. 
+from dotenv import load_dotenv
 
 load_dotenv()
 
@@ -21,9 +21,12 @@ class StreamHandler(BaseCallbackHandler):
     def on_llm_new_token(self, token: str, **kwargs) -> None:
         self.text += token
         self.container.markdown(self.text)
+    
+    def on_llm_end(self, **kwargs) -> None:
+        self.text += "\n\n마음에 드냐옹? 💕 언제든 추가로 질문하라냥! 🐾"
+        self.container.markdown(self.text)
 
-
-# function to extract text from an HWP file #pdf 변환 시 내용이 깨져서 이 문서 그대로 다루는 게 좋음. LangChain에는 없음..
+# function to extract text from an HWP file
 import olefile
 import zlib
 import struct
@@ -93,10 +96,8 @@ def process_uploaded_file(uploaded_file):
     if uploaded_file is not None:
         
         # loader
-        # pdf파일을 처리하려면?
         if uploaded_file.type == 'application/pdf':
             raw_text = get_pdf_text(uploaded_file)
-        # hwp파일을 처리하려면? (hwp loader(parser)는 난이도 매우 어려움)
         elif uploaded_file.type == 'application/octet-stream':
             raw_text = get_hwp_text(uploaded_file)
             
@@ -118,7 +119,7 @@ def process_uploaded_file(uploaded_file):
         return vectorstore, raw_text
     return None
 
-# generate response using RAG technic #이 부분 코딩이 중요하다!
+# generate response using RAG technic
 def generate_response(query_text, vectorstore, callback):
 
     # retriever 
@@ -142,8 +143,7 @@ def generate_response(query_text, vectorstore, callback):
 
     response = llm(rag_prompt)
     
-    return response.content + "\n\n마음에 드냐옹? 💕 언제든 추가로 질문하라냥! 🐾"
-
+    return response.content
 
 def generate_summarize(raw_text, callback, language):
 
@@ -151,11 +151,9 @@ def generate_summarize(raw_text, callback, language):
     llm = ChatOpenAI(model_name="gpt-4", temperature=0, streaming=True, callbacks=[callback])
     
     if language == 'ko':
-        end_text = "\n\n마음에 드냐옹? 💕 언제든 추가로 질문하라냥! 🐾"
         system_message = "다음 나올 문서를 'Notion style'로 적절한 이모지를 불렛포인트로 사용해서 요약해줘. 중요한 내용만. 모든 문장의 끝에 '냥'을 붙여줘. 또한 '~다냥'과 같은 자연스러운 문장으로 끝나게 해줘."
     else:
-        end_text = "\n\nDo you like it? 💕 Feel free to ask more questions, meow! 🐾"
-        system_message = "Summarize the following document in 'Notion style' using appropriate emojis as bullet points. Focus on the important content only."
+        system_message = "Summarize the following document in 'Notion style' using appropriate emojis as bullet points. Focus on the important content only and end each sentence with 'meow'."
 
     # prompt formatting
     rag_prompt = [
@@ -168,12 +166,11 @@ def generate_summarize(raw_text, callback, language):
     ]
     
     response = llm(rag_prompt)
-    return response.content + end_text
-
+    return response.content
 
 # page title
-st.set_page_config(page_title='🧊 꽁꽁 얼어붙은 고양이 🐈 가 논문 위를 걸어다닙니다 🐾')
-st.title('🧊 꽁꽁 얼어붙은 고양이 🐈 가 논문 위를 걸어다닙니다 🐾')
+st.set_page_config(page_title=' 🧊 꽁꽁 얼어붙은 논문 위로 🐈 고양이가 걸어다닙니다 🐾')
+st.title('🧊 꽁꽁 얼어붙은 논문 위로 🐈 고양이가 걸어다닙니다 🐾')
 
 # enter token
 import os
@@ -193,7 +190,7 @@ if uploaded_file:
         st.session_state['vectorstore'] = vectorstore
         st.session_state['raw_text'] = raw_text
         
-# chatbot greatings - 첫 인사
+# chatbot greetings - 첫 인사
 if "messages" not in st.session_state:
     st.session_state["messages"] = [
         ChatMessage(
@@ -216,16 +213,16 @@ if prompt := st.chat_input("영문 요약은 'sum', 한글 요약은 '요약'이
         if prompt == "요약":
             response = generate_summarize(st.session_state['raw_text'], stream_handler, language='ko')
             st.session_state["messages"].append(
-                ChatMessage(role="assistant", content=response)
+                ChatMessage(role="assistant", content=response + "\n\n마음에 드냐옹? 💕 언제든 추가로 질문하라냥! 🐾")
             )
 
         elif prompt == "sum":
             response = generate_summarize(st.session_state['raw_text'], stream_handler, language='en')
             st.session_state["messages"].append(
-                ChatMessage(role="assistant", content=response)
+                ChatMessage(role="assistant", content=response + "\n\nDo you like it? 💕 Feel free to ask more questions, meow! 🐾")
             )
         else:
             response = generate_response(prompt, st.session_state['vectorstore'], stream_handler)
             st.session_state["messages"].append(
-                ChatMessage(role="assistant", content=respons)
+                ChatMessage(role="assistant", content=response + "\n\n마음에 드냐옹? 💕 언제든 추가로 질문하라냥! 🐾")
             )
