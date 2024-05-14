@@ -153,7 +153,7 @@ def generate_summarize(raw_text, callback):
     # prompt formatting
     rag_prompt = [
         SystemMessage(
-            content="다음 나올 문서를 'Notion style'로 적절한 이모지를 불렛포인트로 사용해서 요약해줘. 중요한 내용만."
+            content="다음 나올 문서를 'Notion style'로 적절한 이모지를 불렛포인트로 사용해서 한국어로 요약해줘. 중요한 내용만. 전체 요약 마지막에는 '마음에 드냐옹? 🐾💕' 문장을 덧붙여줘."
         ),
         HumanMessage(
             content=raw_text
@@ -190,7 +190,7 @@ if uploaded_file:
 if "messages" not in st.session_state:
     st.session_state["messages"] = [
         ChatMessage(
-            role="assistant", content="안냥! 바쁜 고양이들을 위해 유튜브 링크를 업로드하면 요약해주겠다냥! 🐾"
+            role="assistant", content="안냥! 바쁜 고양이들을 위해 논문을 업로드하면 귀엽게 요약해주겠다냥! 🐾"
         )
     ]
 
