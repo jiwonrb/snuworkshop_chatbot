@@ -227,3 +227,12 @@ if prompt := st.chat_input("영문 요약은 'sum', 한글 요약은 '요약'이
             except Exception as e:
                 st.error(f"Error generating summary: {e}")
         else:
+                    try:
+                        response = generate_response(prompt, st.session_state['vectorstore'])
+                        response += "\n\n마음에 드냐옹? 💕 언제든 추가로 질문하라냥! 🐾"
+                        st.session_state["messages"].append(
+                            ChatMessage(role="assistant", content=response)
+                        )
+                        st.write(f"assistant: {response}")
+                    except Exception as e:
+                        st.error(f"Error generating response: {e}")
